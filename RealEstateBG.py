@@ -5,11 +5,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+# create the class
 class RealEstate:
     def __init__(self, url, no_rooms):
-        self.url = url
-        self.no_rooms = no_rooms
-
+        self.url = url  # url to be scraped
+        self.no_rooms = no_rooms  # number of rooms parameter to be used for further analysis
+# function to scrape and add the data to a dataframe
     def analyze(self):
         get_page_numbers = requests.get(self.url)  # read the webpage
         get_page_numbers.encoding = get_page_numbers.apparent_encoding  # encoding
@@ -18,18 +19,19 @@ class RealEstate:
         pages = int(page_nums[0][-2:])
         print(pages)
         
-        price_pattern = r'(\d+\s\d+\sEUR)|(Цена при запитване)'  # или 000 000 eur или Цена при запитване
-        area_pattern = r'(\d+\sкв.м)'  #търси "кв.м" в текста към обявата
+        price_pattern = r'(\d+\s\d+\sEUR)|(Цена при запитване)'  # either 000 000 eur or "Цена при запитване"
+        area_pattern = r'(\d+\sкв.м)'  #looking for "кв.м" in the text
         prices_all = []
         area_all = []
         prices_all_new = []
-        xpath = '//td[contains(text(), "кв.м")]'
-        xpath_prices = '//div[contains(@class, "price")]'
+        xpath = '//td[contains(text(), "кв.м")]'  # xpath for "кв.м" in the text
+        xpath_prices = '//div[contains(@class, "price")]'  # xpath for price
         area_modified = []
         prices_final = []
         
+        # iterate over the page numbers with offers
         for i in range(1,pages + 1):
-            imoti = requests.get(str(self.url[:-1] + '{}').format(i))  # итератор за минаваме през всички страници
+            imoti = requests.get(str(self.url[:-1] + '{}').format(i))
             imoti.encoding = imoti.apparent_encoding
             txt = imoti.text
             sel = Selector(imoti)
@@ -58,9 +60,11 @@ class RealEstate:
             
         for i in range(len(prices_all_new)):
             prices_final.append(prices_all_new[i])
-        
+            
+        # use the two lists to create a dataframe
         df = pd.DataFrame(data=[area_modified, prices_final]).T
         df.columns = ['m2', 'EUR']
+        # data cleaning
         df['EUR'] = df['EUR'].astype('str')
         df['EUR'] = df['EUR'].str.replace("[(\'","")
         df['EUR'] = df['EUR'].str.replace("EUR", "")
@@ -77,4 +81,4 @@ class RealEstate:
             df_clean['m2'] = df_clean['m2'].astype('int32')
         except:
             print('Check some of the values....')
-        df_clean.to_csv('/home/user/filav/imoti project/test_df_{}_staen.csv'.format(self.no_rooms))
+        df_clean.to_csv('/home/user/filav/imoti project/test_df_{}_staen.csv'.format(self.no_rooms))  # save the df 
