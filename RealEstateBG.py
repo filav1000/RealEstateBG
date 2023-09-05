@@ -82,3 +82,16 @@ class RealEstate:
         except:
             print('Check some of the values....')
         df_clean.to_csv('/home/user/filav/imoti project/test_df_{}_staen.csv'.format(self.no_rooms))  # save the df 
+
+url = 'https://www.imot.bg/pcgi/imot.cgi?act=3&slink=9pd2go&f1=1'
+test = RealEstate(url = url, no_rooms = 3)
+test.analyze()
+
+df_analysis = df_clean.copy()
+print(df_analysis.info())  # check the data in the df
+df_analysis['EUR'] = df_analysis['EUR'].astype('int32')  # change dtype of EUR columns
+df_analysis = df_analysis[df_analysis['EUR'] != 0]
+
+# stats
+sns.boxplot(data = df_analysis, x='rooms', y='EUR', width = 0.5)
+plt.show()
